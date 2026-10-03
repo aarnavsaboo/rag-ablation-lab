@@ -1,0 +1,11 @@
+{
+  "documents": [
+    {"id":"d1","text":"Reciprocal-rank fusion combines several ranked lists using reciprocal rank scores."},
+    {"id":"d2","text":"Cross-encoder reranking scores query and passage pairs after initial retrieval."},
+    {"id":"d3","text":"Local model generation latency includes prompt processing and token decoding."}
+  ],
+  "queries": [
+    {"id":"q1","text":"How can ranked retrieval lists be combined?","relevant":["d1"]},
+    {"id":"q2","text":"What happens after broad retrieval with a cross encoder?","relevant":["d2"]}
+  ]
+}

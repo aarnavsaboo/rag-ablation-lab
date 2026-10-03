@@ -1,25 +1,98 @@
 # rag-ablation-lab
 
-An experiment harness for asking a simple question: which parts of a RAG pipeline actually improve retrieval on a given corpus?
+A config-driven experiment harness for measuring which parts of a RAG pipeline actually help on a particular dataset.
 
-The runner treats chunking, retrieval, fusion, query expansion and reranking as independent factors. Experiments are written to JSONL with enough configuration to reproduce each run, then compared with Recall@k, MRR and nDCG rather than a single hand-picked example.
+The lab treats chunking, lexical retrieval, embeddings, rank fusion, query rewriting, candidate depth, diversity selection and reranking as independent variables. Each run produces per-query rankings and metrics, not just one aggregate score, so a more complicated configuration can be inspected for both wins and regressions.
 
-## Experiments
+The repository is built around ablation rather than demos: establish a baseline, change one factor, measure the delta, keep the queries where the change helped and the queries where it hurt.
 
-- lexical vs dense vs hybrid retrieval
-- reciprocal-rank fusion weight sweeps
+## Experiment dimensions
+
 - fixed-size vs sentence-aware chunking
-- query expansion and HyDE-style synthetic queries
-- MMR diversity after retrieval
-- optional cross-encoder reranking
-- chunk-size and overlap grids
-- bootstrap deltas between two runs
+- chunk size and overlap
+- BM25 parameters
+- embedding model
+- lexical / dense / hybrid retrieval
+- reciprocal-rank fusion weighting
+- query expansion count
+- HyDE-style generated search text
+- candidate depth
+- MMR selection
+- cross-encoder reranking
+- final top-k
+- evidence budget
 
-```bash
-python -m rag_ablation_lab grid configs/grid.example.json
-python -m rag_ablation_lab compare results/baseline.jsonl results/hybrid.jsonl
+## Workflow
+
+```text
+corpus + labelled queries
+          |
+          v
+     experiment grid
+          |
+          v
+   concrete run specs
+          |
+          v
+      pipeline runner
+          |
+          +--> rankings
+          +--> per-query metrics
+          +--> stage timings
+          |
+          v
+       raw JSONL
+          |
+      +---+----------------+
+      |                    |
+      v                    v
+aggregate metrics      paired deltas
+                           |
+                           v
+                    win/loss queries
 ```
 
-The repository is intentionally comfortable with null results. A more complicated pipeline that loses to BM25 on the labelled queries should be recorded as a loss, not tuned away.
+## Example
+
+```bash
+python -m rag_ablation_lab grid configs/grid.example.json > runs/plan.jsonl
+python -m rag_ablation_lab run runs/plan.jsonl --dataset examples/dataset.json --out runs/results.jsonl
+python -m rag_ablation_lab summarize runs/results.jsonl
+python -m rag_ablation_lab compare runs/results.jsonl baseline-id experiment-id
+```
+
+## Paired comparison
+
+Averages can hide where a pipeline regressed. The comparison layer pairs two experiments on query ID and reports:
+
+- mean Recall@k delta
+- mean MRR delta
+- mean nDCG delta
+- number of query wins/ties/losses
+- bootstrap interval for the mean delta
+- worst regressions by query ID
+- largest improvements by query ID
+- stage-time delta
+
+The bootstrap implementation is intentionally small and deterministic from a seed.
+
+## Failed experiments are first-class results
+
+The lab does not assume query expansion, reranking or larger chunks are improvements. If a complex configuration loses to BM25, that result remains visible.
+
+Useful RAG engineering often means removing a stage after measuring it.
+
+## Repository layout
+
+- `dataset.py` — labelled corpus/query format
+- `grid.py` — experiment matrix expansion
+- `retrievers.py` — small lexical baseline and pluggable interfaces
+- `metrics.py` — Recall/MRR/nDCG
+- `runner.py` — experiment execution
+- `stats.py` — paired deltas and bootstrap intervals
+- `report.py` — per-experiment summaries
+- `configs/` — experiment grids
+- `examples/` — tiny reproducible fixtures
+- `tests/` — deterministic tests
 
 Maintained by **Aarnav Saboo**.
