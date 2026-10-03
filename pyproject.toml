@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-ablation-lab"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[project.scripts]
+rag-ablation-lab = "rag_ablation_lab.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["rag_ablation_lab*"]
