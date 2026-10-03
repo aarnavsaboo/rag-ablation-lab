@@ -5,10 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rag-ablation-lab"
 version = "0.1.0"
+description = "Config-driven ablation framework for retrieval-augmented generation pipelines."
+readme = "README.md"
 requires-python = ">=3.10"
+authors = [{name = "Aarnav Saboo"}]
+keywords = ["rag", "retrieval", "evaluation", "ablation", "llm"]
 
 [project.scripts]
 rag-ablation-lab = "rag_ablation_lab.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/aarnavsaboo/rag-ablation-lab"
 
 [tool.setuptools.packages.find]
 include = ["rag_ablation_lab*"]
